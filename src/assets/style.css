@@ -1,0 +1,19 @@
+*, :after, :before {
+    box-sizing: border-box;
+}
+.background{
+    background: linear-gradient(#161b22,#161b22) padding-box,linear-gradient(90deg,#575a7b,#F0A04B) border-box;
+}
+
+@keyframes blink {
+    0%,  100% {
+     opacity:  1;
+   }
+    50% {
+     opacity:  0;
+   }
+ }
+ 
+ .animate-blink {
+   animation: blink  1s infinite;
+ }
