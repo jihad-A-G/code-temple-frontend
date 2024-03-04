@@ -46,7 +46,7 @@ const router = createBrowserRouter([
   {
     path:"/",
     loader:()=>{
-      return redirect('/community')
+      return redirect('/login')
     },
   },
   {
