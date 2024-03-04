@@ -11,8 +11,8 @@ const RequestPage = () =>{
     const fetcher = useFetcher()
     const developer = useSelector((state)=>state.developer)
 
-    const [currentPage, setCurrentPage] = useState(1);
     const [copied, setCopied] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     const totalPages = Math.ceil(requests.length / itemsPerPage);
 

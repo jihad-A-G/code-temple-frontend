@@ -1,4 +1,4 @@
-import { useLoaderData,useFetcher,Form,Link, useParams } from "react-router-dom"
+import { useLoaderData,useFetcher,Form,Link, useParams, useSubmit } from "react-router-dom"
 import { useEffect,useState } from "react";
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-javascript';
@@ -14,9 +14,12 @@ const PostDetails = () =>{
     const data = useLoaderData()
     const fetcher = useFetcher()
     const dispatch = useDispatch()
-    const params = useParams()
+    const submit = useSubmit()
     const developer = useSelector((state)=>state.developer)
     const [showOptions, setShowOptions] = useState(false)
+    const [commentToSend,setCommentToSend] = useState('')
+    const [isEditing,setISEditing] = useState(false)
+    const [idToEdit,setIdToEdit] = useState(null)
 
 
     console.log(developer);
@@ -28,7 +31,7 @@ const PostDetails = () =>{
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (showOptions && !event.target.closest('.message-container') && !event.target.matches('.message-container')) {
+            if (showOptions && !event.target.closest('.comment-container') && !event.target.matches('.comment-container')) {
                 setShowOptions(false);
             }
         };
@@ -130,20 +133,25 @@ const PostDetails = () =>{
                 </div>
              </div>
              {/* Comment */}
-             <fetcher.Form method="POST" className="my-4 w-full">
+             <fetcher.Form method={`${isEditing?'PUT':'POST'}`} action={`${isEditing?`/community/post/comment/update/${data.post._id}`:''}`} className="my-4 w-full">
                 <div className="relative bg-secondary flex flex-col rounded-16 ">
                     <div className="flex flex-col !min-h-[15rem]">
                        
                         <span className="flex w-full flex-row">
                             <img src={logo} alt="" className="object-cover w-10 h-10 rounded-[12px] ml-3 mt-3" />
                             <span className="relative flex flex-1">
-                                <textarea rows="7" placeholder="Share your thoughts" name="content" className="flex max-h-[290px] flex-1 bg-transparent outline-none text-[17px] leading-[22px]  m-3">
+                                <input type="hidden" name="commentId" value={idToEdit} />
+                                <textarea onChange={(e)=>setCommentToSend(e.target.value)} value={commentToSend} rows="7" placeholder="Share your thoughts" name="content" className="flex max-h-[290px] flex-1 bg-transparent outline-none text-[17px] leading-[22px]  m-3">
                                 </textarea>
                                 {/* <input type="hidden" name="postId" value={data._id} /> */}
                                 </span>
                         </span>
                         <span className="flex flex-row items-center justify-end border-t border-[#a8b3cf33] p-3 px-4 text-[#a8b3cf]">
-                        <button type="submit"  className="bg-sandyBrown shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out text-white text-base h-10 px-5 rounded-[12px] ml-auto" disabled="">
+                        <button onClick={(e)=>{
+                            e.preventDefault()
+                            setCommentToSend('')
+                            submit(e.target.form)
+                        }} type="submit"  className="bg-sandyBrown shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out text-white text-base h-10 px-5 rounded-[12px] ml-auto" disabled="">
                             Comment
                             </button>
                         </span>
@@ -167,28 +175,27 @@ const PostDetails = () =>{
                                 </span>
                             </div>
                         </header>
-                        <div className="break-words-overflow z-1 mt-3 text-[17px] leading-[22px]">
+                        <div className="break-words-overflow z-1 mt-3 text-[17px] leading-[22px] relative">
                             <div className="realtive break-words">
                                 <p>{c.content}</p>
                             </div>
                             <div className="flex flex-row items-center pointer-events-auto mt-3">
-                                <button type="button" onClick={()=>handleUpVote(c._id)}  className="btn shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out text-base h-8 w-8 p-0 rounded-10 mr-3 hover:fill-[#F0A04B]">
+                               <button type="button" onClick={()=>handleUpVote(c._id)}  className="btn shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out text-base h-8 w-8 p-0 rounded-10 mr-3 hover:fill-[#F0A04B]">
                                 <svg width="1em" height="1em" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 pointer-events-none hover:fill-[#F0A04B]"><path d="M9.456 4.216l-5.985 7.851c-.456.637-.583 1.402-.371 2.108l.052.155a2.384 2.384 0 002.916 1.443l2.876-.864.578 4.042a2.384 2.384 0 002.36 2.047h.234l.161-.006a2.384 2.384 0 002.2-2.041l.576-4.042 2.877.864a2.384 2.384 0 002.625-3.668L14.63 4.33a3.268 3.268 0 00-5.174-.115zm3.57.613c.16.114.298.253.411.411l5.897 7.736a.884.884 0 01-.973 1.36l-3.563-1.069a.884.884 0 00-1.129.722l-.678 4.75a.884.884 0 01-.875.759h-.234a.884.884 0 01-.875-.76l-.679-4.75a.884.884 0 00-1.128-.72l-3.563 1.068a.884.884 0 01-.973-1.36L10.56 5.24a1.767 1.767 0 012.465-.41z" fill="#a8b3cf" fillRule="evenodd"></path></svg>
                                 </button>
-                                <button aria-label="Options" className="btn shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out typo-callout iconOnly h-8 w-8 p-0 rounded-10 btn-tertiary my-auto">
+                                {c.developerId._id == developer._id &&  <button onClick={()=>setShowOptions(c._id)} aria-label="Options" className="btn shadow-none focus-outline inline-flex cursor-pointer select-none flex-row items-center justify-center font-bold no-underline transition duration-200 ease-in-out typo-callout iconOnly h-8 w-8 p-0 rounded-10 btn-tertiary my-auto">
                                     <svg width="1em" height="1em" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 pointer-events-none "><path d="M12 17a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0-6.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM12 4a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" fill="#a8b3cf" fillRule="evenodd"></path></svg>
-                                    </button>
+                                    </button>}
                                     <button className="flex cursor-pointer flex-row items-center text-[#a8b3cf] hover:underline focus:underline text-base ml-auto">{c.upVote} upvote</button> 
                                     {showOptions == c._id &&(
-                      <div className="message-container absolute right-0 left-[-200px] top-[-50px] mt-2 w-48 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg">
+                      <div className="comment-container absolute left-20  mt-2 w-48 bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg">
                         <div className="py-1">
-                         {m.developerId._id == developer._id? <button onClick={(e)=>{
+                         {c.developerId._id == developer._id? <button onClick={(e)=>{
                           setISEditing(true)
-                          setSendMessage(m.content)
-                          setIdTOEdit(m._id)
+                          setCommentToSend(c.content)
+                          setIdToEdit(c._id)
                         }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left" role="menuitem">Edit</button>:null}
-                          <button type="button" onClick={(e)=>handleCopyClick(c)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">{!copied?'Copy':'Copied'}</button>
-                         {c.developerId._id == developer._id? <fetcher.Form method='DELETE' action={`/community/rooms/chat/message/delete`}><input type="hidden" name="messageId"  defaultValue={c._id}/><input type="hidden" name="roomId"  defaultValue={params.id}/><button type="submit" className=" text-start w-full block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600">Delete</button></fetcher.Form>:null}
+                         {c.developerId._id == developer._id? <fetcher.Form method='DELETE' action={`/community/post/comment/delete`}><input type="hidden" name="commentId"  defaultValue={c._id}/><button type="submit" className=" text-start w-full block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600">Delete</button></fetcher.Form>:null}
                         </div>
                       </div>
                     )}

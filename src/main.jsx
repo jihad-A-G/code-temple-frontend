@@ -44,6 +44,12 @@ console.log(localStorage.getItem('token'));
 
 const router = createBrowserRouter([
   {
+    path:"/",
+    loader:()=>{
+      return redirect('/community')
+    },
+  },
+  {
     path:'/login',
     element:<Login/>,
    
@@ -271,6 +277,26 @@ const router = createBrowserRouter([
           return null
         }
 
+      },
+      {
+        path:'post/comment/delete',
+        action: async({request})=>{
+          const formData = await request.formData()
+          const data = Object.fromEntries(formData)
+          const response = await instance.delete(`/comments/${data.commentId}`)
+
+          return null
+        }
+      },
+      {
+        path:'post/comment/update/:id',
+        action: async({request,params})=>{
+          const formData = await request.formData()
+          const data = Object.fromEntries(formData)
+          const response = await instance.put(`/comments/${data.commentId}`,{...data})
+
+           return redirect(`/community/post/${params.id}`)
+        }
       },
       {
         path:'saved',
