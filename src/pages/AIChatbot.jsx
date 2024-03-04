@@ -1,23 +1,38 @@
-import { Form } from "react-router-dom"
 import { useState, useEffect } from "react";
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { monokai } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import Navbar from "../components/navbar";
+import logo from '../assets/svgs/logo.svg'
 import axios from "axios";
-
 import '../assets/style.css'
+import PostForm from "../components/addPostForm";
 const AIChatbot = () =>{
     // const fecther = useFetcher()
     const [prompt,setPrompt] = useState('')
     const [code,setCode] = useState('')
+    const [codeToPost,setCodeToPost] = useState('')
     const [explaination,setExplaination] = useState('')
     const [isLoading,setIsLoading] = useState(false)
-    const codeRegex = /```(\w+)\n([\s\S]+?)\n```/
-
+    const [completeTyping,setCompleteTyping] = useState(false)
+    const [copied,setCopied] = useState(false)
+    const [chat,setChat] = useState([])
+    const [openForm,setOpenForm] = useState(false)
+    const codeRegex = /```\w+\n([\s\S]+?)\n```/
+  
    
+    const handleOpenForm = (e) =>{
+      e.preventDefault()
+      setOpenForm(true)
+    }
+
     const submitPrompt = async (e) => {
         try {
+          let indexForExplaination = 0
+          let indexForCode = 0
           e.preventDefault()
           setIsLoading(true)
+          setCode('')
+          setExplaination('')
             console.log('Function is being executed!');
           const response = await axios.post(
             'https://api.edenai.run/v2/text/code_generation',
@@ -35,32 +50,82 @@ const AIChatbot = () =>{
               },
             }
           );
-          console.log(response.data);
+          // console.log(response.data);
           const answer = response.data.openai.generated_text
-          // const match = response.data.openai.generated_text.match(codeRegex);
-          // if (match && match[1]) {
-          //   setCode(match[1].trim()); // Trim any leading/trailing whitespace
-          //   console.log('meshi l 7al');
-          // }
-          setCode(answer.split(codeRegex)[1])
-          setExplaination(answer.split(codeRegex)[0])
-          
-          // setCode(response.data.openai.generated_text);
+          const explainationToAnimate = answer.split(codeRegex)[0]
+          const codeToAnimate = answer.split(codeRegex)[1]
+          setCodeToPost(codeToAnimate)
+          console.log(codeToPost);
           setIsLoading(false)
+          //adding the first character to explaination
+            setExplaination(explainationToAnimate[0])
+            //Every 10 ms add a character to the explaination state
+          const ExplainationInterval = setInterval(()=>{
+
+            setExplaination((prevExplaination) => prevExplaination + explainationToAnimate.charAt(indexForExplaination));
+
+            indexForExplaination++
+
+            if(indexForExplaination >= explainationToAnimate.length){
+              //stop explaination interval
+              //Every 10 ms add a character to the code state
+              const CodeInterval = setInterval(()=>{
+                setCode((prevCode) => prevCode + codeToAnimate.charAt(indexForCode));
+                indexForCode++
+                
+                if(indexForCode >= codeToAnimate?.length){
+                  //stop the code interval
+                  clearInterval(CodeInterval)
+                }
+              },8)
+              
+              clearInterval(ExplainationInterval)
+            }
+          },8)
+
+          setChat([...chat,{explaination:explainationToAnimate, code:codeToAnimate}])
+          console.log(code);
+          console.log(explaination);
+         console.log(chat);
+          
+          setCompleteTyping(true)
+
+          
         } catch (error) {
           console.error('Error submitting prompt:', error);
         }
       };
 
+      const handleCopyClick = async(e) =>{
+        e.preventDefault()
+        try {
+          await navigator.clipboard.writeText(code);
+          setCopied(true);
+          setTimeout(() => setCopied(false),  3000);
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+        }        
+      }
 
     return(
         <>
-        <section className="w-full h-full relative">
+         {/* POST FORM */}
+         {openForm?
+      <div className=" w-full h-full bg-[rgb(0,0,0,.80)]  flex justify-center items-center !absolute z-[60] text-white">
+        <PostForm code={codeToPost}/>
+        </div>:null}
+
+        <div className="w-screen h-screen bg-main text-white box-border relative overflow-auto">
+            <header>
+        <Navbar/>
+            </header>
+            <main className="pt-20 container-lg w-full h-full  flex justify-start relative bg-main overflow-auto">
+            <section className="w-full h-full relative bg-main pt-10 pb-20">
              {/* Search bar */}
              <div className="fixed bottom-5 w-full z-30">             
-             <div className=" w-full h-full flex justify-center ">
-                <form method="POST" onSubmit={submitPrompt}>
-                    <div className="rounded-xl border-3 border-transparent background flex items-stretch w-1070 flex-wrap">
+             <div className=" w-full h-full flex ">
+                <form method="POST" onSubmit={submitPrompt} className="w-1070 mx-auto">
+                    <div className="rounded-xl border-3 border-transparent background flex items-stretch flex-wrap">
                     <textarea
                         tabIndex="0"
                         autoComplete="off"
@@ -114,29 +179,65 @@ const AIChatbot = () =>{
                 </form>
             </div>
             </div>
-            <div className="flex flex-col items-center relative justify-center py-10 px-8 w-full h-full bg-main">
+            <div className="flex">
+            <div className=" relative py-10 px-8 mx-auto w-1070 h-full bg-main">
             {/* result */}
-            {isLoading&&<div className="flex justify-center items-center absolute top-70 ">
-  <span className="animate-blink text-4xl font-mono"><svg fill="#fff" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0  0  32  32" xml:space="preserve" width="64px" height="64px" stroke="#fff">
-  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-  <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-  <g id="SVGRepo_iconCarrier">
-    <path id="systems-devops--code_1_" d="M15.819,30.311l-12-7C3.708,23.246,3.64,23.128,3.64,23V9h0.72v13.793l11.821,6.896 L15.819,30.311z M8.36,16H7.64V6h0.72V16z M28.36,15h-0.72V9.207L16,2.417l-3.64,2.116L12.352,13h-0.72l0.008-8.675 c0-0.128,0.068-0.247,0.179-0.311l4-2.325c0.112-0.065,0.251-0.065,0.362,0l12,7C28.292,8.753,28.36,8.872,28.36,9V15z M30.509,22 l-4.254-4.255l-0.51,0.51L29.491,22l-3.746,3.745l0.51,0.51L30.509,22z M21.255,25.745L17.509,22l3.746-3.745l-0.51-0.51L16.491,22 l4.254,4.255L21.255,25.745z"></path>
-  </g>
-</svg></span>
-</div>}
+          
+          <div className="flex items-center border-b-.8 border-b-nav gap-5 mb-4">
+          <div className="p-2"><span className="font-mono"><img src={logo}  alt="" /></span>
+
+</div>
+<p>Ask me anything related to coding.</p>
+          </div>
+
+            <div className="">
+              {isLoading?<div className="flex items-baseline space-x-2">
+	<div className="animate-pulse dark:text-white">Loading</div>
+	<div className="w-1 h-1 rounded-full animate-pulse dark:bg-white"></div>
+	<div className="w-1 h-1 rounded-full animate-pulse dark:bg-white"></div>
+	<div className="w-1 h-1 rounded-full animate-pulse dark:bg-white"></div>
+</div>:null}
             {explaination&&<p className="mb-2">{explaination}</p>}
-            {code&&<div className="w-full h-full  mb-5">
-                        <SyntaxHighlighter className="rounded-xl bg-secondary h-fit p-5 overflow-auto" language="javascript" style={darcula}>{code}</SyntaxHighlighter>
+            {code&&<div className=" mt-5 mb-20 relative">
+              <div className="absolute top-3 right-3 z-40 "><button class="px-3 md:px-4 py-1 md:py-2 bg-white border border-white text-black rounded-lg hover:bg-main hover:text-white" onClick={handleOpenForm}>post</button></div>
+                        <SyntaxHighlighter className="rounded-xl w-full h-fit p-5 overflow-auto mb-2 relative" language="javascript" style={monokai}>{code}</SyntaxHighlighter>
+                         <div className="">
+                          {!copied?<button type="button" onClick={handleCopyClick}><svg
+                              width="18px"
+                              height="18px"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              stroke="fff"
+                            >
+                              <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+                              <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                              <g id="SVGRepo_iconCarrier">
+                                {" "}
+                                <path
+                                  fill="#fff"
+                                  fillRule="evenodd"
+                                  d="M4 2a2 2 0 00-2 2v9a2 2 0 002 2h2v2a2 2 0 002 2h9a2 2 0 002-2V8a2 2 0 00-2-2h-2V4a2 2 0 00-2-2H4zm9 4V4H4v9h2V8a2 2 0 012-2h5zM8 8h9v9H8V8z"
+                                />{" "}
+                              </g>
+                            </svg></button>:'copied'}
+                            </div>
             </div>}
-           
+          
+            </div>   
+        </div>
+
         </div>
         </section>
        
+            </main>
+        </div>
+          
 
         </>
 
     )
 }
+
 
 export default AIChatbot

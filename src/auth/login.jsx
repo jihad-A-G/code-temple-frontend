@@ -1,6 +1,45 @@
 import { Link,Form } from "react-router-dom"
-
+import logo from '../assets/svgs/logo.svg'
+import { useState } from "react"
+import { instance } from "../main"
+import { storeDeveloper } from "../redux/developerSlice.js"
+import {   useDispatch, useSelector } from "react-redux"
+import { useEffect } from "react"
+import { jwtDecode } from "jwt-decode"
+import { storePosts } from "../redux/developerSlice.js"
+import { useLoaderData, useNavigate } from "react-router-dom"
 const Login = () =>{
+  const [formData,setFormData] = useState({
+    username:'',
+    password:'',
+  })
+  const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const developer = useSelector((state)=>state.developer)
+    console.log(developer);
+
+
+console.log(formData);
+
+  const handleLogin = async(e) =>{
+   e.preventDefault()
+   const response = await instance.post('auth/login',{...formData})
+
+   const token = response.data.token
+
+      localStorage.removeItem('token')
+
+      localStorage.setItem('token',token)
+
+      dispatch(storeDeveloper(jwtDecode(token).developer))
+
+      dispatch(storePosts(jwtDecode(token).developer.savedPost))
+
+      instance.defaults.headers.authorization = `Bearer: ${token}`;
+
+      return navigate('/community')
+
+  }
 
     return(
         <>
@@ -8,20 +47,8 @@ const Login = () =>{
   <Link to="/">
     <div className="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
       <div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5"
-          />
-        </svg>
+      <img src={logo} alt="" />
+
       </div>
       Code Temple
     </div>
@@ -37,7 +64,7 @@ const Login = () =>{
         </p>
       </div>
       <div className="p-6 pt-0">
-        <Form method="POST">
+        <form method="POST">
           <div>
             <div>
               <div className="group relative rounded-lg border focus-within:border-sky-200 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-sky-300/30">
@@ -63,6 +90,8 @@ const Login = () =>{
                 <input
                   type="text"
                   name="username"
+                  value={formData.username}
+                  onChange={(e)=>setFormData({...formData,username:e.target.value})}
                   placeholder="Username"
                   autoComplete="off"
                   className="block w-full border-0 bg-transparent p-0 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 sm:leading-7 text-foreground"
@@ -82,6 +111,8 @@ const Login = () =>{
                   <input
                     type="password"
                     name="password"
+                    value={formData.password}
+                  onChange={(e)=>setFormData({...formData,password:e.target.value})}
                     className="block w-full border-0 bg-transparent p-0 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"
                   />
                 </div>
@@ -114,11 +145,12 @@ const Login = () =>{
             <button
               className="font-semibold hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 inline-flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black h-10 px-4 py-2"
               type="submit"
+              onClick={handleLogin}
             >
               Log in
             </button>
           </div>
-        </Form>
+        </form>
       </div>
     </div>
   </div>

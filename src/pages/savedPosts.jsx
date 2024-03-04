@@ -1,0 +1,27 @@
+
+import Post from "../components/post";
+import { useLoaderData } from "react-router-dom";
+import SavedPost from "../components/savedPost";
+
+const SavedPosts = () =>{
+    const data = useLoaderData()
+    console.log(data.savedPosts);
+    return(
+    <>
+
+        <div className="bg-main w-full h-full !min-h-full overflow-auto px-[108px] pt-10 pb-16 flex flex-wrap justify-center lg:justify-start gap-8 relative">
+        {data.savedPosts.length>0?
+        data.savedPosts.map(p=>{
+            return <SavedPost key={p._doc._id} post={p}/>
+        })
+        
+        :<div className="w-full h-full flex items-center justify-center">
+            <p className="text-3xl text-[#848D97] font-semibold">No posts!</p>
+        </div>
+            }
+            </div>
+    </>
+    )
+}
+
+export default SavedPosts

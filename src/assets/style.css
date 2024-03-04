@@ -1,6 +1,10 @@
 *, :after, :before {
     box-sizing: border-box;
 }
+html,body{
+  width: '100%';
+  height: '100%';
+}
 .background{
     background: linear-gradient(#161b22,#161b22) padding-box,linear-gradient(90deg,#575a7b,#F0A04B) border-box;
 }
@@ -17,3 +21,12 @@
  .animate-blink {
    animation: blink  1s infinite;
  }
+
+ .highlight-lightgreen {
+  background-color: rgba(46, 160, 67, 0.15);
+ }
+ 
+ .highlight-lightred {
+  background-color: rgba(248, 81, 73, 0.1);
+ }
+ 
