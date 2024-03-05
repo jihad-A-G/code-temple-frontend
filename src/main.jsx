@@ -35,7 +35,7 @@ import Rooms from './pages/rooms/rooms.jsx'
 import socket from './config/socketIo.js'
 //Create axios istance
 export const instance = axios.create({
-  baseURL: 'http://localhost:5050/api',
+  baseURL: 'https://codetemple-backend.onrender.com/api',
   timeout: 7000,
   headers:{ authorization: `Bearer: ${localStorage.getItem("token")}`,}
 },
